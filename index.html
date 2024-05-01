@@ -3,58 +3,109 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Setlist Maker</title>
-
+    <title>Adventures of Todd & Niki Setlist Maker</title>
     <style>
+      html,
+      body {
+        height: 100%; /* Full viewport height */
+        margin: 0; /* No margins */
+        padding: 0; /* No padding */
+        background-image: url("atn.png"); /* Background image */
+        background-size: cover; /* Cover entire viewport */
+        background-position: right 20% center; /* Positioning the background */
+        background-repeat: no-repeat; /* No repeat */
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
       textarea,
-      button {
+      button,
+      input {
         width: 90%;
-        margin: 10px auto; /* Centering buttons and textarea */
+        margin: 10px auto;
         display: block;
+        background-color: black;
+        color: white;
+      }
+      #searchInput {
+        margin-bottom: 0; /* Reduces space below the search input */
       }
       #listsContainer {
         display: flex;
-        flex-wrap: wrap; /* Allows the container to wrap on smaller screens */
+        flex-wrap: wrap;
         justify-content: space-between;
+        flex-grow: 1;
       }
       #masterList,
       #setList {
-        width: 100%; /* Full width on smaller screens */
+        width: 100%;
         border: 1px solid black;
         padding: 10px;
-        margin: 10px 0; /* Only vertical margin */
-        height: 400px; /* Adjust height as necessary */
-        overflow-y: auto; /* Enables scrolling */
+        margin: 10px 0;
+        height: 400px;
+        overflow-y: auto;
+        background-color: white;
       }
       .song {
         margin: 5px;
         padding: 5px;
         border: 1px solid grey;
         cursor: pointer;
+        background-color: white;
       }
       .song:hover {
         background-color: lightgrey;
       }
-
-      /* Media Queries */
-      @media (min-width: 768px) {
-        /* Tablets and up */
+      button[onclick="copySetlist()"] {
+        margin-top: -200px; /* Adjust as necessary to bring it up by approximately three lines */
+      }
+      @media (min-width: 480px) {
         #masterList,
         #setList {
-          width: 45%; /* Adjust width for tablets and desktops */
+          width: 48%; /* Two columns on smaller screens */
+          margin: 10px 1%; /* Small side margins for gutter space */
         }
-      }
-
-      @media (min-width: 1024px) {
-        /* Desktops */
         #listsContainer {
           justify-content: space-around;
+        }
+      }
+      @media (min-width: 768px) {
+        #masterList,
+        #setList {
+          width: 45%; /* Slightly larger than on smaller devices */
+        }
+      }
+      @media (min-width: 1024px) {
+        #listsContainer {
+          justify-content: space-around;
+        }
+      }
+      @media (max-width: 480px) {
+        /* Specific styles for small devices like iPhones */
+        textarea,
+        button,
+        input {
+          font-size: 14px; /* Smaller font size for better readability */
+        }
+        #masterList,
+        #setList {
+          height: 200px; /* Further reduced height for very small screens */
+        }
+        button {
+          padding: 8px; /* Adjust padding to make buttons easier to tap */
         }
       }
     </style>
   </head>
   <body>
-    <h1>adventures of todd & niki Setlist Maker</h1>
+    <input
+      id="searchInput"
+      type="text"
+      placeholder="Search songs..."
+      oninput="filterSongs()"
+    />
     <textarea id="songInput" rows="10" cols="50">
 Alright now 123 bpm capo 0 
 All i wanna do 120 bpm capo 0
@@ -147,27 +198,29 @@ Your Love 129 bpm capo 0
       <div id="masterList" tabindex="0"></div>
       <div id="setList"></div>
     </div>
-    <button onclick="copySetlist()">Copy Setlist</button>
-
+    <div id="copysetList">
+      <button onclick="copySetlist()">Copy Setlist</button>
+    </div>
     <script>
+      let originalSongs = [];
       let masterSongs = [];
       let setList = [];
-      let searchBuffer = "";
-      let timeout = null;
 
       function parseSongs() {
-        const input = document.getElementById("songInput");
-        masterSongs = input.value.split("\n").map((line, index) => {
+        const input = document.getElementById("songInput").value.split("\n");
+        originalSongs = input.map((line, index) => {
           const name = line.replace(/(\d+ bpm|capo \d+)/g, "").trim();
           const bpmMatch = line.match(/(\d+) bpm/);
           const bpm = bpmMatch ? parseInt(bpmMatch[1]) : null;
           const capoMatch = line.match(/capo (\d+)/);
           const capo = capoMatch ? parseInt(capoMatch[1]) : null;
-          return { id: index, name, bpm, capo };
+          return { id: index, name, bpm, capo, originalIndex: index };
         });
+        masterSongs = [...originalSongs];
         displaySongs("masterList", masterSongs);
-        input.style.display = "none"; // Hide the input area
-        document.getElementById("masterList").focus(); // Focus on the master list
+        document.getElementById("songInput").style.display = "none";
+        document.querySelector("button[onclick='parseSongs()']").style.display =
+          "none";
       }
 
       function displaySongs(containerId, songs) {
@@ -179,41 +232,72 @@ Your Love 129 bpm capo 0
           songDiv.textContent = `${song.name} ${
             song.bpm ? "- " + song.bpm + " bpm" : ""
           } ${song.capo !== null ? "- capo " + song.capo : ""}`;
-          songDiv.onclick = () => selectSong(song, containerId);
+          songDiv.onclick = () => {
+            containerId === "masterList"
+              ? selectSong(song)
+              : deselectSong(song);
+          };
           container.appendChild(songDiv);
         });
-        container.scrollTop = 0; // Reset scroll to top
       }
 
-      function selectSong(song, fromList) {
-        if (fromList === "masterList") {
-          setList.push(song);
-          masterSongs = masterSongs.filter((s) => s.id !== song.id);
-          updateSuggestions(song);
+      function filterSongs() {
+        const searchText = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const filteredSongs = originalSongs.filter((song) =>
+          song.name.toLowerCase().includes(searchText)
+        );
+        displaySongs("masterList", filteredSongs);
+      }
+
+      function selectSong(song) {
+        setList.push(song);
+        masterSongs = masterSongs.filter((s) => s.id !== song.id);
+        updateSuggestions();
+        displaySongs("setList", setList);
+        displaySongs("masterList", masterSongs);
+      }
+
+      function deselectSong(song) {
+        masterSongs.splice(song.originalIndex, 0, song);
+        setList = setList.filter((s) => s.id !== song.id);
+        updateSuggestions();
+        displaySongs("setList", setList);
+        displaySongs("masterList", masterSongs);
+      }
+
+      function moveSongUp(song) {
+        const index = setList.indexOf(song);
+        if (index > 0) {
+          [setList[index - 1], setList[index]] = [
+            setList[index],
+            setList[index - 1],
+          ];
           displaySongs("setList", setList);
-          displaySongs("masterList", masterSongs);
-          document.getElementById("masterList").focus(); // Focus back to master list
         }
       }
 
-      function updateSuggestions(selectedSong) {
-        masterSongs.sort((a, b) => {
-          const capoPriority = a.capo === selectedSong.capo ? 0 : 1;
-          const bpmRange = 3; // Define the range for bpm matching
-          const bpmPriorityA =
-            Math.abs(a.bpm - selectedSong.bpm) <= bpmRange ? 0 : 1;
-          const bpmPriorityB =
-            Math.abs(b.bpm - selectedSong.bpm) <= bpmRange ? 0 : 1;
+      function updateSuggestions() {
+        if (!setList.length) return;
+        const lastSelectedSong = setList[setList.length - 1];
 
-          if (capoPriority === bpmPriorityA && capoPriority === bpmPriorityB) {
-            // Both songs match capo and are within bpm range or neither are
-            return (
-              Math.abs(a.bpm - selectedSong.bpm) -
-              Math.abs(b.bpm - selectedSong.bpm)
-            ); // Sort by closest bpm
-          }
-          return capoPriority || bpmPriorityA - bpmPriorityB; // Prioritize capo and then bpm range
+        masterSongs.sort((a, b) => {
+          const capoMatchA = a.capo === lastSelectedSong.capo ? 0 : 100;
+          const capoMatchB = b.capo === lastSelectedSong.capo ? 0 : 100;
+          const bpmDiffA = Math.abs(a.bpm - lastSelectedSong.bpm);
+          const bpmDiffB = Math.abs(b.bpm - lastSelectedSong.bpm);
+          const exactMatchA = capoMatchA === 0 && bpmDiffA <= 3 ? 0 : 1;
+          const exactMatchB = capoMatchB === 0 && bpmDiffB <= 3 ? 0 : 1;
+
+          return (
+            exactMatchA - exactMatchB ||
+            capoMatchA - capoMatchB ||
+            bpmDiffA - bpmDiffB
+          );
         });
+
+        displaySongs("masterList", masterSongs);
       }
 
       function copySetlist() {
@@ -227,31 +311,9 @@ Your Love 129 bpm capo 0
           .join("\n");
         navigator.clipboard.writeText(setListSongs).then(
           () => alert("McCool-i-fied Setlist copied to clipboard!"),
-          (err) => console.error("#$^&*!: ", err)
+          (err) => console.error("Failed to copy setlist: ", err)
         );
       }
-
-      // Handling keystroke accumulation and search
-      document
-        .getElementById("masterList")
-        .addEventListener("keypress", function (event) {
-          if (timeout) clearTimeout(timeout);
-          searchBuffer += event.key.toLowerCase();
-          timeout = setTimeout(() => {
-            searchBuffer = ""; // Reset buffer after 7 seconds of inactivity
-          }, 7000);
-
-          const songDiv = Array.from(this.children).find((div) =>
-            div.textContent.toLowerCase().startsWith(searchBuffer)
-          );
-          if (songDiv) {
-            songDiv.scrollIntoView({ behavior: "smooth", block: "nearest" });
-            songDiv.style.backgroundColor = "yellow"; // Highlight the matched song
-            setTimeout(() => {
-              songDiv.style.backgroundColor = "";
-            }, 2000); // Remove highlight after 2 seconds
-          }
-        });
     </script>
   </body>
 </html>
