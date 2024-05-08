@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Adventures of Todd & Niki Setlist Maker</title>
+    <title>Faultlines Setlist Maker</title>
     <style>
       html,
       body {
-        height: 100%; /* Full viewport height */
-        margin: 0; /* No margins */
-        padding: 0; /* No padding */
-        background-image: url("atn.png"); /* Background image */
-        background-size: 300px 300px; /* Larger size for the image to reduce repeat */
-        background-position: right 20% center; /* Positioning the background */
-        background-repeat: repeat; /* Still allowing the image to repeat */
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-image: url("atn.png");
+        background-size: cover;
+        background-position: right 20% center;
+        background-repeat: no-repeat;
       }
 
       body {
@@ -21,34 +21,30 @@
         flex-direction: column;
         min-height: 100vh;
       }
-      textarea,
-      button,
-      input {
+
+      .hide {
+        visibility: hidden;
+      }
+      input,
+      button {
         width: 90%;
         margin: 10px auto;
         display: block;
         background-color: black;
         color: white;
       }
-      #searchInput {
-        margin-bottom: 0; /* Reduces space below the search input */
-      }
-      #listsContainer {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        flex-grow: 1;
-      }
+
       #masterList,
       #setList {
-        width: 100%;
-        border: 1px solid black;
+        width: 45%;
         padding: 10px;
-        margin: 10px 0;
-        height: 400px;
+        margin-top: 10px;
+        border: 1px solid black;
         overflow-y: auto;
+        height: 400px;
         background-color: white;
       }
+
       .song {
         margin: 5px;
         padding: 5px;
@@ -56,47 +52,37 @@
         cursor: pointer;
         background-color: white;
       }
+
       .song:hover {
         background-color: lightgrey;
       }
-      button[onclick="copySetlist()"] {
-        margin-top: -200px; /* Adjust as necessary to bring it up by approximately three lines */
+
+      #linkModal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
       }
-      @media (min-width: 480px) {
-        #masterList,
-        #setList {
-          width: 48%; /* Two columns on smaller screens */
-          margin: 10px 1%; /* Small side margins for gutter space */
-        }
-        #listsContainer {
-          justify-content: space-around;
-        }
+
+      #linkModalContent {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
       }
-      @media (min-width: 768px) {
-        #masterList,
-        #setList {
-          width: 45%; /* Slightly larger than on smaller devices */
-        }
-      }
-      @media (min-width: 1024px) {
-        #listsContainer {
-          justify-content: space-around;
-        }
-      }
-      @media (max-width: 480px) {
-        /* Specific styles for small devices like iPhones */
-        textarea,
-        button,
-        input {
-          font-size: 14px; /* Smaller font size for better readability */
-        }
-        #masterList,
-        #setList {
-          height: 200px; /* Further reduced height for very small screens */
-        }
-        button {
-          padding: 8px; /* Adjust padding to make buttons easier to tap */
-        }
+
+      #closeModal {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
       }
     </style>
   </head>
@@ -107,143 +93,718 @@
       placeholder="Search songs..."
       oninput="filterSongs()"
     />
-    <textarea id="songInput" rows="10" cols="50">
-Alright now 123 bpm loop 46 
-All i wanna do 120 bpm loop 43
-American Boy 118 bpm loop 38
-American Girl 230 bpm loop 8
-as it was 174 bpm loop 80
-i’m a believer 162 bpm loop 79
-Bennie & the jets 72 bpm loop 9
-Boots were made for walking 164 bpm loop 77
-Brass in Pocket 98 bpm loop 15
-BreakDown 114 bpm loop 33
-Brkfst at Tifnys 112 bpm loop 24
-Brown eyed girl 149 bpm loop 70
-Brown eyed girl - original bpm 78 bpm loop 0
-Brown eyed / i’m a believer 149 bpm loop 70
-Brown eyed / i’m a believer 155 bpm loop 75
-Cake by the ocean 120 bpm loop 42
-Carolina 90 bpm loop 90
-Crazy (patsy c) 76 bpm loop 0
-Crazy (gnarls) /sweet dreams 116 bpm loop 35
-Crazy little thing called love 154 bpm loop 74
-Dance the Night 110 bpm loop 24
-Don’t know why  88 bpm loop 4
-Don’t start now slower 120 bpm loop 39
-Don’t start now 124 bpm loop 45
-Don’t u 4get  112 bpm loop 24
-Dreams 120 bpm loop 40
-Espresso 104 bpm loop 24
-Everywhere 108 bpm loop 27
-Fade n2 u   89 bpm loop 52
-Fire loop   171 bpm loop 80
-Flowers/American Boy 118 bpm loop 37
-Fly me to the moon 126 bpm loop 47
-Footloose 174 bpm loop 80
-Funk 103 bpm loop 23
-Get back 123 bpm loop 46
-Gimme one reason 100 bpm loop 20
-Go your way 135 bpm loop 61
-HardtoHandle/Butterfly(crazyTown) 104 bpm loop 24
-Hey Jealousy 151 bpm loop 72
-Hotel California 74 bpm loop 2
-houdini / Training season 120 bpm  loop 44
-i’m a believer - original bpm 158 bpm loop 79
-Jackson 130 bpm loop 59
-j.t. Sad jams 77 bpm loop 99
-Just like heaven 151 bpm loop 72
-Killing me softly 92 bpm loop 11
-Landslide 73 bpm loop 1
-Levitating 103 bpm loop 22
-Let’s stay together 102 bpm loop 21
-Little Lies 125 bpm loop 48
-Long Train 117 bpm loop 36
-Love fool 112 bpm loop 24
-Love Song 140 bpm loop 67
-Lovely Day 98 bpm loop 17
-Mary Janes last dance 86 bpm loop 16
-Melt with you 156 bpm loop 71
-Melt with you (atn) slower 145 bpm loop 69
-Moon dance 134 bpm loop 0
-Price Tag _E _ 88 bpm loop 0
-Proud mary / Fire 171 bpm loop 0
-Put your records on 96 bpm loop 0
-Red red wine 89 bpm loop 08
-Rhiannon /Bossa 129 bpm loop 53
-Rock this town 200 bpm loop 84
-Saw her standing there 160 bpm loop 76
-Save Tonight 120 bpm loop 41
-Shut up and Dance 128 bpm loop 52
-Selfish 88 bpm  loop 4
-Sunday morning 88 bpm loop 5
-sweet dreams/Crazy (gnarls) 125 bpm loop 48
-Son of a preacher man 91 bpm loop 10
-Stand by me 116 bpm loop 34
-Stir it up 74 bpm loop 3
-style  95 bpm loop 13
-Summer of 69 139 bpm loop 65
-Take it easy 139 bpm loop 65
-Tennessee Whiskey/Fade n2 u 89 bpm loop 52
-Tiny dancer 73 bpm loop 1
-Toxic acoustic 138 bpm loop 64
-Training season /houdini 120 bpm loop 44
-Upside down 102 bpm loop 22
-Valerie 106 bpm loop 25
-Valerie (slower) 103 bpm loop 19
-Watermelon sugar 95 bpm loop 13
-way you make me feel 114 bpm loop 30
-You are the best thing 89 bpm loop 7
-You may be right 151 bpm loop 73
-Your Love 129 bpm loop 54
-</textarea
-    ><br />
-    <button onclick="parseSongs()">Load Songs</button>
-    <div id="listsContainer">
-      <div id="masterList" tabindex="0"></div>
-      <div id="setList"></div>
+    <div id="masterList" tabindex="0"></div>
+    <div id="setList"></div>
+    <button onclick="copySetlist()">Copy Setlist</button>
+
+    <div id="linkModal">
+      <div id="linkModalContent">
+        <span id="closeModal" onclick="closeModal()">&times;</span>
+        <iframe id="modalIframe" style="width: 100%; height: 400px"></iframe>
+      </div>
     </div>
-    <div id="copysetList">
-      <button onclick="copySetlist()">Copy Setlist</button>
-    </div>
+
     <script>
       let originalSongs = [];
       let masterSongs = [];
       let setList = [];
 
+      // Define your song list here
+      const songList = [
+        {
+          title: "Alright now",
+          bpm: 123,
+          loop: 46,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "All i wanna do",
+          bpm: 120,
+          loop: 43,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "American Boy",
+          bpm: 118,
+          loop: 38,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "American Girl",
+          bpm: 230,
+          loop: 8,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "as it was",
+          bpm: 174,
+          loop: 80,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "i’m a believer",
+          bpm: 162,
+          loop: 79,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Bennie & the jets",
+          bpm: 72,
+          loop: 9,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Boots were made for walking",
+          bpm: 164,
+          loop: 77,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Brass in Pocket",
+          bpm: 98,
+          loop: 15,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "BreakDown",
+          bpm: 114,
+          loop: 33,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Brkfst at Tifnys",
+          bpm: 112,
+          loop: 24,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Brown eyed girl",
+          bpm: 149,
+          loop: 70,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Brown eyed girl - original bpm",
+          bpm: 78,
+          loop: 0,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Brown eyed / i’m a believer",
+          bpm: 149,
+          loop: 70,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Brown eyed / i’m a believer",
+          bpm: 155,
+          loop: 75,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Cake by the ocean",
+          bpm: 120,
+          loop: 42,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Carolina",
+          bpm: 90,
+          loop: 90,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Crazy (patsy c)",
+          bpm: 76,
+          loop: 0,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Crazy (gnarls) /sweet dreams",
+          bpm: 116,
+          loop: 35,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Crazy little thing called love",
+          bpm: 154,
+          loop: 74,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Dance the Night",
+          bpm: 110,
+          loop: 24,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Don’t know why",
+          bpm: 88,
+          loop: 4,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Don’t start now slower",
+          bpm: 120,
+          loop: 39,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Don’t start now",
+          bpm: 124,
+          loop: 45,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Don’t u 4get",
+          bpm: 112,
+          loop: 24,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Dreams",
+          bpm: 120,
+          loop: 40,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Espresso",
+          bpm: 104,
+          loop: 24,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Everywhere",
+          bpm: 108,
+          loop: 27,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Fade n2 u",
+          bpm: 89,
+          loop: 52,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Fire loop",
+          bpm: 171,
+          loop: 80,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Flowers/American Boy",
+          bpm: 118,
+          loop: 37,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Fly me to the moon",
+          bpm: 126,
+          loop: 47,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Footloose",
+          bpm: 174,
+          loop: 80,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Funk",
+          bpm: 103,
+          loop: 23,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Get back",
+          bpm: 123,
+          loop: 46,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Gimme one reason",
+          bpm: 100,
+          loop: 20,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Go your way",
+          bpm: 135,
+          loop: 61,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "HardtoHandle/Butterfly(crazyTown)",
+          bpm: 104,
+          loop: 24,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Hey Jealousy",
+          bpm: 151,
+          loop: 72,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Hotel California",
+          bpm: 74,
+          loop: 2,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "houdini / Training season",
+          bpm: 120,
+          loop: 44,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "i’m a believer - original bpm",
+          bpm: 158,
+          loop: 79,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Jackson",
+          bpm: 130,
+          loop: 59,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "j.t. Sad jams",
+          bpm: 77,
+          loop: 99,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Just like heaven",
+          bpm: 151,
+          loop: 72,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Killing me softly",
+          bpm: 92,
+          loop: 11,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Landslide",
+          bpm: 73,
+          loop: 1,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Levitating",
+          bpm: 103,
+          loop: 22,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Let’s stay together",
+          bpm: 102,
+          loop: 21,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Little Lies",
+          bpm: 125,
+          loop: 48,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Long Train",
+          bpm: 117,
+          loop: 36,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Love fool",
+          bpm: 112,
+          loop: 24,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Love Song",
+          bpm: 140,
+          loop: 67,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Lovely Day",
+          bpm: 98,
+          loop: 17,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Mary Janes last dance",
+          bpm: 86,
+          loop: 16,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Melt with you",
+          bpm: 156,
+          loop: 71,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Melt with you (atn) slower",
+          bpm: 145,
+          loop: 69,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Moon dance",
+          bpm: 134,
+          loop: 0,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Price Tag _E",
+          bpm: 88,
+          loop: 0,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Proud mary / Fire",
+          bpm: 171,
+          loop: 0,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Put your records on",
+          bpm: 96,
+          loop: 0,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Red red wine",
+          bpm: 89,
+          loop: 8,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Rhiannon /Bossa",
+          bpm: 129,
+          loop: 53,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Rock this town",
+          bpm: 200,
+          loop: 84,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Saw her standing there",
+          bpm: 160,
+          loop: 76,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Save Tonight",
+          bpm: 120,
+          loop: 41,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Shut up and Dance",
+          bpm: 128,
+          loop: 52,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Selfish",
+          bpm: 88,
+          loop: 4,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Sunday morning",
+          bpm: 88,
+          loop: 5,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "sweet dreams/Crazy (gnarls)",
+          bpm: 125,
+          loop: 48,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Son of a preacher man",
+          bpm: 91,
+          loop: 10,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Stand by me",
+          bpm: 116,
+          loop: 34,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Stir it up",
+          bpm: 74,
+          loop: 3,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "style",
+          bpm: 95,
+          loop: 13,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Summer of 69",
+          bpm: 139,
+          loop: 65,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Take it easy",
+          bpm: 139,
+          loop: 65,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Tennessee Whiskey/Fade n2 u",
+          bpm: 89,
+          loop: 52,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Tiny dancer",
+          bpm: 73,
+          loop: 1,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Toxic acoustic",
+          bpm: 138,
+          loop: 64,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Training season /houdini",
+          bpm: 120,
+          loop: 44,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Upside down",
+          bpm: 102,
+          loop: 22,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Valerie",
+          bpm: 106,
+          loop: 25,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Valerie (slower)",
+          bpm: 103,
+          loop: 19,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Watermelon sugar",
+          bpm: 95,
+          loop: 13,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "way you make me feel",
+          bpm: 114,
+          loop: 30,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "You are the best thing",
+          bpm: 89,
+          loop: 7,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "You may be right",
+          bpm: 151,
+          loop: 73,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        {
+          title: "Your Love",
+          bpm: 129,
+          loop: 54,
+          link: "https://toddmccool.github.io/chordprog124/",
+        },
+        // Add more songs as needed
+      ];
       function parseSongs() {
-        const input = document.getElementById("songInput").value.split("\n");
-        originalSongs = input.map((line, index) => {
-          const name = line.replace(/(\d+ bpm|loop \d+)/g, "").trim();
-          const bpmMatch = line.match(/(\d+) bpm/);
+        originalSongs = songList.map((song, index) => {
+          const bpmMatch = song.title.match(/(\d+) bpm/);
           const bpm = bpmMatch ? parseInt(bpmMatch[1]) : null;
-          const loopMatch = line.match(/loop (\d+)/);
-          const loop = loopMatch ? parseInt(loopMatch[1]) : null;
-          return { id: index, name, bpm, loop, originalIndex: index };
+          const capoMatch = song.title.match(/capo (\d+)/);
+          const capo = capoMatch ? parseInt(capoMatch[1]) : null;
+          const type = song.title.includes("_U")
+            ? "_U"
+            : song.title.includes("_S")
+            ? "_S"
+            : null;
+          return {
+            id: index,
+            link: song.link,
+            name: song.title.replace(/(\d+ bpm|capo \d+)/g, "").trim(),
+            bpm,
+            capo,
+            type, // Store the type explicitly
+          };
         });
         masterSongs = [...originalSongs];
         displaySongs("masterList", masterSongs);
-        document.getElementById("songInput").style.display = "none";
-        document.querySelector("button[onclick='parseSongs()']").style.display =
-          "none";
+      }
+
+      function updateSuggestions() {
+        if (!setList.length) return; // Exit if setList is empty
+        const lastSelectedSong = setList[setList.length - 1];
+
+        // Sort masterSongs based on type match, then bpm and capo proximity
+        masterSongs.sort((a, b) => {
+          const typeMatchA = a.type === lastSelectedSong.type ? 0 : 1; // 0 if matches, 1 otherwise
+          const typeMatchB = b.type === lastSelectedSong.type ? 0 : 1;
+
+          const bpmDiffA = Math.abs(a.bpm - lastSelectedSong.bpm);
+          const bpmDiffB = Math.abs(b.bpm - lastSelectedSong.bpm);
+          const capoDiffA = Math.abs(
+            (a.capo || 0) - (lastSelectedSong.capo || 0)
+          );
+          const capoDiffB = Math.abs(
+            (b.capo || 0) - (lastSelectedSong.capo || 0)
+          );
+
+          // First sort by type, then by bpm difference, then by capo difference
+          if (typeMatchA !== typeMatchB) {
+            return typeMatchA - typeMatchB;
+          } else if (bpmDiffA !== bpmDiffB) {
+            return bpmDiffA - bpmDiffB;
+          } else {
+            return capoDiffA - capoDiffB;
+          }
+        });
+
+        displaySongs("masterList", masterSongs);
       }
 
       function displaySongs(containerId, songs) {
         const container = document.getElementById(containerId);
-        container.innerHTML = "";
+        container.innerHTML = ""; // Clear existing entries
         songs.forEach((song) => {
           const songDiv = document.createElement("div");
           songDiv.className = "song";
-          songDiv.textContent = `${song.name} ${
-            song.bpm ? "- " + song.bpm + " bpm" : ""
-          } ${song.loop !== null ? "- loop " + song.loop : ""}`;
-          songDiv.onclick = () => {
-            containerId === "masterList"
-              ? selectSong(song)
-              : deselectSong(song);
-          };
+          songDiv.style.padding = "10px"; // Adding padding for better click area
+
+          const songNameSpan = document.createElement("span");
+          // Insert text content and wrap _U or _S in a span with a special class
+          songNameSpan.innerHTML =
+            song.name.replace(/(_U|_S)/g, '<span class="hide">$1</span>') +
+            ` - ${song.bpm ? song.bpm + " bpm" : ""} ${
+              song.capo ? "capo " + song.capo : ""
+            }`;
+          songDiv.appendChild(songNameSpan);
+
+          if (song.link) {
+            const link = document.createElement("a");
+            link.href = "#";
+            link.style.marginLeft = "10px";
+            link.textContent = "(Link)";
+            link.onclick = (e) => {
+              e.preventDefault(); // Prevent the default anchor action
+              e.stopPropagation(); // Stop the click event from bubbling to the parent div
+              openModal(song.link); // Call the modal function
+            };
+            songDiv.appendChild(link);
+          }
+
+          songDiv.addEventListener("click", () => {
+            if (containerId === "masterList") {
+              selectSong(song);
+            } else if (containerId === "setList") {
+              deselectSong(song);
+            }
+          });
+
           container.appendChild(songDiv);
         });
+      }
+
+      // Add CSS to hide the tags
+      // This can be added in the <style> section of your HTML
+
+      function openModal(url) {
+        const modal = document.getElementById("linkModal");
+        const iframe = document.getElementById("modalIframe");
+        iframe.src = url; // Set the iframe source to the URL
+        modal.style.display = "block"; // Display the modal
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("linkModal");
+        modal.style.display = "none";
+        const iframe = document.getElementById("modalIframe");
+        iframe.src = ""; // Clear the iframe source
+      }
+
+      function selectSong(song) {
+        setList.push(song);
+        masterSongs = masterSongs.filter((s) => s.id !== song.id);
+        displaySongs("masterList", masterSongs);
+        displaySongs("setList", setList);
+        updateSuggestions();
+
+        // Scroll the master list back to the top
+        const masterListDiv = document.getElementById("masterList");
+        masterListDiv.scrollTop = 0; // Set the scroll position to the top
+      }
+
+      function deselectSong(song) {
+        setList = setList.filter((s) => s.id !== song.id);
+        masterSongs.push(song);
+        displaySongs("masterList", masterSongs);
+        displaySongs("setList", setList);
+        updateSuggestions();
+      }
+
+      function updateSuggestions() {
+        if (!setList.length) return; // Exit if setList is empty
+        const lastSelectedSong = setList[setList.length - 1];
+        const lastSongType = lastSelectedSong.name.includes("_U") ? "_U" : "_S"; // Determine the type of the last selected song
+
+        // Sort masterSongs based on type match, then bpm and capo proximity
+        masterSongs.sort((a, b) => {
+          const typeMatchA = a.name.includes(lastSongType) ? 0 : 1; // 0 if matches, 1 otherwise
+          const typeMatchB = b.name.includes(lastSongType) ? 0 : 1;
+
+          const bpmDiffA = Math.abs(a.bpm - lastSelectedSong.bpm);
+          const bpmDiffB = Math.abs(b.bpm - lastSelectedSong.bpm);
+          const capoDiffA = Math.abs(
+            (a.capo || 0) - (lastSelectedSong.capo || 0)
+          );
+          const capoDiffB = Math.abs(
+            (b.capo || 0) - (lastSelectedSong.capo || 0)
+          );
+
+          // First sort by type, then by bpm difference, then by capo difference
+          if (typeMatchA !== typeMatchB) {
+            return typeMatchA - typeMatchB;
+          } else if (bpmDiffA !== bpmDiffB) {
+            return bpmDiffA - bpmDiffB;
+          } else {
+            return capoDiffA - capoDiffB;
+          }
+        });
+
+        displaySongs("masterList", masterSongs);
       }
 
       function filterSongs() {
@@ -256,69 +817,7 @@ Your Love 129 bpm loop 54
         displaySongs("masterList", filteredSongs);
       }
 
-      function selectSong(song) {
-        setList.push(song);
-        masterSongs = masterSongs.filter((s) => s.id !== song.id);
-        updateSuggestions();
-        displaySongs("setList", setList);
-        displaySongs("masterList", masterSongs);
-      }
-
-      function deselectSong(song) {
-        masterSongs.splice(song.originalIndex, 0, song);
-        setList = setList.filter((s) => s.id !== song.id);
-        updateSuggestions();
-        displaySongs("setList", setList);
-        displaySongs("masterList", masterSongs);
-      }
-
-      function moveSongUp(song) {
-        const index = setList.indexOf(song);
-        if (index > 0) {
-          [setList[index - 1], setList[index]] = [
-            setList[index],
-            setList[index - 1],
-          ];
-          displaySongs("setList", setList);
-        }
-      }
-
-      function updateSuggestions() {
-        if (!setList.length) return;
-        const lastSelectedSong = setList[setList.length - 1];
-
-        masterSongs.sort((a, b) => {
-          const loopMatchA = a.loop === lastSelectedSong.loop ? 0 : 100;
-          const loopMatchB = b.loop === lastSelectedSong.loop ? 0 : 100;
-          const bpmDiffA = Math.abs(a.bpm - lastSelectedSong.bpm);
-          const bpmDiffB = Math.abs(b.bpm - lastSelectedSong.bpm);
-          const exactMatchA = loopMatchA === 0 && bpmDiffA <= 3 ? 0 : 1;
-          const exactMatchB = loopMatchB === 0 && bpmDiffB <= 3 ? 0 : 1;
-
-          return (
-            exactMatchA - exactMatchB ||
-            loopMatchA - loopMatchB ||
-            bpmDiffA - bpmDiffB
-          );
-        });
-
-        displaySongs("masterList", masterSongs);
-      }
-
-      function copySetlist() {
-        const setListSongs = setList
-          .map(
-            (song) =>
-              `${song.name} - ${song.bpm ? song.bpm + " bpm" : ""} ${
-                song.loop !== null ? "- loop " + song.loop : ""
-              }`
-          )
-          .join("\n");
-        navigator.clipboard.writeText(setListSongs).then(
-          () => alert("McCool-i-fied Setlist copied to clipboard!"),
-          (err) => console.error("Failed to copy setlist: ", err)
-        );
-      }
+      window.onload = parseSongs;
     </script>
   </body>
 </html>
