@@ -634,13 +634,15 @@
 
       function copySetlist() {
         const setlistText = setList
-          .map(
-            (song) =>
-              `${song.name} ${song.bpm ? song.bpm + " bpm" : ""} ${
-                song.capo ? "capo " + song.capo : ""
-              }`
-          )
+          .map((song) => {
+            // Remove HTML tags using a regular expression
+            const songName = song.name.replace(/<[^>]*>/g, "");
+            return `${songName} ${song.capo ? "loop: " + song.capo : ""} ${
+              song.capo && song.bpm ? "_" : ""
+            } ${song.bpm ? song.bpm + " bpm" : ""}`;
+          })
           .join("\n");
+
         navigator.clipboard.writeText(setlistText).then(
           () => {
             alert("Setlist copied to clipboard!");
